@@ -3,6 +3,8 @@
 Here are the functions and general logic of the project.
 
 """
+from datetime import datetime
+
 from django.db.models import Sum, F
 from rest_framework import status
 from rest_framework.authentication import BasicAuthentication
@@ -12,30 +14,50 @@ from rest_framework.response import Response
 
 from Sumino.core.models import Number
 from Sumino.core.serializers import SumSerializer
+from Sumino.redisDriver.utils import *
+
+SUM_REQUEST_LIMIT = 100
+BAD_REQUEST_LIMIT = 15
 
 
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
 @permission_classes((AllowAny,))
 def sum_view(request, **kwargs):
     if request.method == "GET":
-        result = {}
+        response = {}
 
         # Pass the inputs to the SumSerializer in order to their format checking
         serializer = SumSerializer(data=request.query_params)
 
         # Check if the input data is well-format
         if serializer.is_valid():
+            # First of all, Check the user's request limit count
+            # Get User's IP
+            user_ip = request.META.get('REMOTE_ADDR')
 
-            # Insert a,b into number table
-            serializer.save()
+            # Update this user's sum requests limit in Redis db (ip -> counts)
+            # Calculate the expiration time in which the user can request for 100 times
+            now = datetime.now()
+            next_hour = now.replace(hour=now.hour + 1,
+                                    minute=0,
+                                    second=0)
+            duration = (next_hour - now).total_seconds()
 
-            result['result'] = serializer.validated_data['a'] + serializer.validated_data['b']
-            return Response(data=result, status=status.HTTP_200_OK)
+            result = update_sum_limit(user_ip, expires_at=int(duration), limit=SUM_REQUEST_LIMIT)
+
+            if result == 1:  # User request limit updated successfully
+                # Insert a,b into number table
+                serializer.save()
+                response['result'] = serializer.validated_data['a'] + serializer.validated_data['b']
+                return Response(data=response, status=status.HTTP_200_OK)
+
+            elif result == -1:  # User exceeded its limit
+                return Response(data=response, status=status.HTTP_429_TOO_MANY_REQUESTS)
 
         else:  # The input data is not well-formed
             # Plus bad request counts for this user(IP)
-            result['response'] = serializer.errors
-            return Response(data=result, status=status.HTTP_400_BAD_REQUEST)
+            response['response'] = serializer.errors
+            return Response(data=response, status=status.HTTP_400_BAD_REQUEST)
 
     else:  # Method not allowed
         error_msg = "Method " + request.method + " not allowed !!!"
