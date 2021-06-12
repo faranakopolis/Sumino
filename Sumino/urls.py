@@ -17,4 +17,5 @@ urlpatterns = [
 
     path('sum/', views.sum_view, name='get_sum_of_inputs'),
     path('history/', views.history_view, name='get_history_of_inputs'),
+    path('total/', views.total_view, name='get_total_of_inputs'),
 ]
