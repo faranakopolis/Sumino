@@ -16,4 +16,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     path('sum/', views.sum_view, name='get_sum_of_inputs'),
+    path('history/', views.history_view, name='get_history_of_inputs'),
 ]

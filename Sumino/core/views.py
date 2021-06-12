@@ -23,3 +23,17 @@ def sum_view(request, **kwargs):
         num.save()
 
         return Response(data={"result": a + b}, status=status.HTTP_200_OK)
+
+
+@api_view()
+def history_view(request, **kwargs):
+    if request.method == 'GET':
+        numbers_list = []
+        numbers = Number.objects.all()
+
+        for num in numbers:
+            numbers_list.append({"a": num.first,
+                                 "b": num.second,
+                                 "created_at": num.created_at})
+
+        return Response(data={"Response": numbers_list}, status=status.HTTP_200_OK)
