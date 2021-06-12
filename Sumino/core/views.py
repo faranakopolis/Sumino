@@ -11,40 +11,66 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 from Sumino.core.models import Number
+from Sumino.core.serializers import SumSerializer
 
 
-@api_view(['GET'])
+@api_view(['GET', 'POST', 'PUT', 'DELETE'])
 @permission_classes((AllowAny,))
 def sum_view(request, **kwargs):
-    a = float(request.query_params.get('a'))
-    b = float(request.query_params.get('b'))
+    if request.method == "GET":
+        result = {}
 
-    # Insert a,b into number table
-    num = Number(first=a, second=b)
-    num.save()
+        # Pass the inputs to the SumSerializer in order to their format checking
+        serializer = SumSerializer(data=request.query_params)
 
-    return Response(data={"result": a + b}, status=status.HTTP_200_OK)
+        # Check if the input data is well-format
+        if serializer.is_valid():
+
+            # Insert a,b into number table
+            serializer.save()
+
+            result['result'] = serializer.validated_data['a'] + serializer.validated_data['b']
+            return Response(data=result, status=status.HTTP_200_OK)
+
+        else:  # The input data is not well-formed
+            # Plus bad request counts for this user(IP)
+            result['response'] = serializer.errors
+            return Response(data=result, status=status.HTTP_400_BAD_REQUEST)
+
+    else:  # Method not allowed
+        error_msg = "Method " + request.method + " not allowed !!!"
+        return Response(data={"response": error_msg}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
-@api_view(['GET'])
+@api_view(['GET', 'POST', 'PUT', 'DELETE'])
 @authentication_classes([BasicAuthentication])
 @permission_classes((IsAuthenticated,))
 def history_view(request, **kwargs):
-    numbers_list = []
-    numbers = Number.objects.all()
+    if request.method == "GET":
+        numbers_list = []
+        numbers = Number.objects.all()
 
-    for num in numbers:
-        numbers_list.append({"a": num.first,
-                             "b": num.second,
-                             "created_at": num.created_at})
+        for num in numbers:
+            numbers_list.append({"a": num.a,
+                                 "b": num.b,
+                                 "created_at": num.created_at})
 
-    return Response(data={"Response": numbers_list}, status=status.HTTP_200_OK)
+        return Response(data={"Response": numbers_list}, status=status.HTTP_200_OK)
+
+    else:  # Method not allowed
+        error_msg = "Method " + request.method + " not allowed !!!"
+        return Response(data={"response": error_msg}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
-@api_view(['GET'])
+@api_view(['GET', 'POST', 'PUT', 'DELETE'])
 @authentication_classes([BasicAuthentication])
 @permission_classes((IsAuthenticated,))
 def total_view(request, **kwargs):
-    total = Number.objects.aggregate(total=Sum(F('first') + F('second')))["total"]
+    if request.method == "GET":
+        total = Number.objects.aggregate(total=Sum(F('a') + F('b')))["total"]
 
-    return Response(data={"Response": total}, status=status.HTTP_200_OK)
+        return Response(data={"Response": total}, status=status.HTTP_200_OK)
+
+    else:  # Method not allowed
+        error_msg = "Method " + request.method + " not allowed !!!"
+        return Response(data={"response": error_msg}, status=status.HTTP_405_METHOD_NOT_ALLOWED)

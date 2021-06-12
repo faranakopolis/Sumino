@@ -12,8 +12,8 @@ from django.db import models
 
 class Number(models.Model):
     id = models.AutoField(primary_key=True)
-    first = models.FloatField(null=False)
-    second = models.FloatField(null=False)
+    a = models.FloatField(null=False)  # First number
+    b = models.FloatField(null=False)  # Second number
     created_at = models.DateTimeField(default=datetime.datetime.now(), null=False)
 
     class Meta:
