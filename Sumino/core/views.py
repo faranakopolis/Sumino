@@ -52,6 +52,7 @@ def sum_view(request, **kwargs):
                 return Response(data=response, status=status.HTTP_200_OK)
 
             elif result == -1:  # User exceeded its limit
+                response['response'] = "Too Many Requests in one hour! you've been blocked till the next hour"
                 return Response(data=response, status=status.HTTP_429_TOO_MANY_REQUESTS)
 
         else:  # The input data is not well-formed
