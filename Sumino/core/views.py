@@ -16,35 +16,29 @@ from Sumino.core.models import Number
 from Sumino.core.serializers import SumSerializer
 from Sumino.redisDriver.utils import *
 
-SUM_REQUEST_LIMIT = 100
-BAD_REQUEST_LIMIT = 15
-
 
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
 @permission_classes((AllowAny,))
 def sum_view(request, **kwargs):
+    response = {}
+
+    # Pass the inputs to the SumSerializer in order to their format checking
+    serializer = SumSerializer(data=request.query_params)
+
+    # Get User's IP
+    user_ip = request.META.get('REMOTE_ADDR')
+
+    # Calculate the expiration time in which the user can request for 100 times
+    now = datetime.now()
+    next_hour = now.replace(hour=now.hour + 1,
+                            minute=0,
+                            second=0)
+    duration = (next_hour - now).total_seconds()
+
     if request.method == "GET":
-        response = {}
-
-        # Pass the inputs to the SumSerializer in order to their format checking
-        serializer = SumSerializer(data=request.query_params)
-
         # Check if the input data is well-format
         if serializer.is_valid():
-            # First of all, Check the user's request limit count
-            # Get User's IP
-            user_ip = request.META.get('REMOTE_ADDR')
-
-            # Update this user's sum requests limit in Redis db (ip -> counts)
-            # Calculate the expiration time in which the user can request for 100 times
-            now = datetime.now()
-            next_hour = now.replace(hour=now.hour + 1,
-                                    minute=0,
-                                    second=0)
-            duration = (next_hour - now).total_seconds()
-
             result = update_user_request_count(user_ip, expires_at=int(duration), request_type="sum")
-
             if result == 1:  # User request limit updated successfully
                 # Insert a,b into number table
                 serializer.save()
@@ -52,17 +46,38 @@ def sum_view(request, **kwargs):
                 return Response(data=response, status=status.HTTP_200_OK)
 
             elif result == -1:  # User exceeded its limit
-                response['response'] = "Too Many Requests in one hour! you've been blocked till the next hour"
+                response['response'] = "Too Many Requests in one hour! you've been blocked from " \
+                                       "calling sum API till the next hour"
                 return Response(data=response, status=status.HTTP_429_TOO_MANY_REQUESTS)
 
         else:  # The input data is not well-formed
             # Plus bad request counts for this user(IP)
-            response['response'] = serializer.errors
+            response['response'] = {"please enter a well-format input based on this error ": serializer.errors}
+
+            result = update_user_request_count(user_ip, expires_at=int(duration), request_type="wrong")
+
+            if result == 1:  # User request limit updated successfully
+                return Response(data=response, status=status.HTTP_400_BAD_REQUEST)
+
+            elif result == -1:  # User wrong requests exceeded its limit (15)
+                response['response'] = "Too Many Wrong Requests in one hour! you've been blocked from " \
+                                       "calling the APIs till the next hour"
+                return Response(data=response, status=status.HTTP_429_TOO_MANY_REQUESTS)
+
             return Response(data=response, status=status.HTTP_400_BAD_REQUEST)
 
     else:  # Method not allowed
         error_msg = "Method " + request.method + " not allowed !!!"
-        return Response(data={"response": error_msg}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+        result = update_user_request_count(user_ip, expires_at=int(duration), request_type="wrong")
+
+        if result == 1:  # User request limit updated successfully
+            return Response(data={"response": error_msg}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+        elif result == -1:  # User wrong requests exceeded its limit (15)
+            response['response'] = error_msg + ", Too Many Wrong Requests in one hour! you've been blocked from " \
+                                               "calling the APIs till the next hour"
+            return Response(data=response, status=status.HTTP_429_TOO_MANY_REQUESTS)
 
 
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
