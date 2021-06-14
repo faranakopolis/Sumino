@@ -43,7 +43,7 @@ def sum_view(request, **kwargs):
                                     second=0)
             duration = (next_hour - now).total_seconds()
 
-            result = update_sum_limit(user_ip, expires_at=int(duration), limit=SUM_REQUEST_LIMIT)
+            result = update_user_request_count(user_ip, expires_at=int(duration), request_type="sum")
 
             if result == 1:  # User request limit updated successfully
                 # Insert a,b into number table
