@@ -10,15 +10,17 @@ from rest_framework import status
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_condition import Or
 from rest_framework.response import Response
 
 from Sumino.core.models import Number
 from Sumino.core.serializers import SumSerializer
 from Sumino.redisDriver.utils import *
+from Sumino.core.permissions import UserIsBlockedPermission
 
 
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
-@permission_classes((AllowAny,))
+@permission_classes((UserIsBlockedPermission,))
 def sum_view(request, **kwargs):
     response = {}
 
@@ -82,7 +84,7 @@ def sum_view(request, **kwargs):
 
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
 @authentication_classes([BasicAuthentication])
-@permission_classes((IsAuthenticated,))
+@permission_classes((IsAuthenticated, UserIsBlockedPermission))
 def history_view(request, **kwargs):
     if request.method == "GET":
         numbers_list = []
@@ -102,7 +104,7 @@ def history_view(request, **kwargs):
 
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
 @authentication_classes([BasicAuthentication])
-@permission_classes((IsAuthenticated,))
+@permission_classes((IsAuthenticated, UserIsBlockedPermission))
 def total_view(request, **kwargs):
     if request.method == "GET":
         total = Number.objects.aggregate(total=Sum(F('a') + F('b')))["total"]

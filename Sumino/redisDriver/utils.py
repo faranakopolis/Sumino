@@ -11,8 +11,13 @@ r = redis.Redis(host=conf.HOST,
 def check_user_block_status(user_ip):
     """Get the wrong request counts based on user_ip from Redis db
         and if it's reached its limit(15) then return True, otherwise return False.
-       Call this function for all APIs
+       (This function will be called in the permissions.py module).
     """
+    result = eval(str(r.get(user_ip)))  # Convert redis result into tuple
+    if result is None or result[1] <= conf.WRONG_REQUEST_LIMIT:
+        return False
+    else:
+        return True
 
 
 def update_user_request_count(user_ip, expires_at, request_type):
