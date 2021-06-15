@@ -15,13 +15,13 @@ def check_user_block_status(user_ip, request_type):
     """
     if request_type == "wrong":
         result = eval(str(r.get(user_ip)))  # Convert redis result into tuple
-        if result is None or result[1] <= conf.WRONG_REQUEST_LIMIT:
+        if result is None or result[1] < conf.WRONG_REQUEST_LIMIT:
             return False
         else:
             return True
     elif request_type == "sum":
         result = eval(str(r.get(user_ip)))  # Convert redis result into tuple
-        if result is None or result[0] <= conf.SUM_REQUEST_LIMIT:
+        if result is None or result[0] < conf.SUM_REQUEST_LIMIT:
             return False
         else:
             return True
@@ -51,12 +51,12 @@ def update_user_request_count(user_ip, expires_at, request_type):
             r.save()  # It's not good to use save in production...
             return 1  # Saved successfully
 
-        elif result[0] <= conf.SUM_REQUEST_LIMIT:  # Count is less than the limit
+        elif result[0] < conf.SUM_REQUEST_LIMIT:  # Count is less than the limit
             r.set(user_ip, str((result[0] + 1, result[1])), ex=expires_at)
             r.save()
             return 1  # Updated successfully
 
-        elif result[0] > conf.SUM_REQUEST_LIMIT:
+        elif result[0] >= conf.SUM_REQUEST_LIMIT:
             # User exceeded the request limit for sum API
             r.set(user_ip, str((result[0] + 1, result[1])), ex=expires_at)
             r.save()
@@ -74,12 +74,12 @@ def update_user_request_count(user_ip, expires_at, request_type):
             r.save()  # It's not good to use save in production...
             return 1  # Saved successfully
 
-        elif result[1] <= conf.WRONG_REQUEST_LIMIT:  # Count is less than the limit
+        elif result[1] < conf.WRONG_REQUEST_LIMIT:  # Count is less than the limit
             r.set(user_ip, str((result[0], result[1] + 1)), ex=expires_at)
             r.save()
             return 1  # Updated successfully
 
-        elif result[1] > conf.WRONG_REQUEST_LIMIT:
+        elif result[1] >= conf.WRONG_REQUEST_LIMIT:
             # User exceeded the limit for Wrong requests
             r.set(user_ip, str((result[0], result[1] + 1)), ex=expires_at)
             r.save()
