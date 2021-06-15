@@ -44,43 +44,35 @@ def update_user_request_count(user_ip, expires_at, request_type):
                     If the user's sum requests count exceeds the limit (100)
                     then his access will be blocked "just" for the sum API (not the rest of them).
         
-        Result: -1 means the user is blocked and 1 means the count is added to one and it's okay.
         """
         if result is None:
             r.set(user_ip, str((1, 0)), ex=expires_at)
             r.save()  # It's not good to use save in production...
-            return 1  # Saved successfully
 
         elif result[0] < conf.SUM_REQUEST_LIMIT:  # Count is less than the limit
             r.set(user_ip, str((result[0] + 1, result[1])), ex=expires_at)
             r.save()
-            return 1  # Updated successfully
 
         elif result[0] >= conf.SUM_REQUEST_LIMIT:
             # User exceeded the request limit for sum API
             r.set(user_ip, str((result[0] + 1, result[1])), ex=expires_at)
             r.save()
-            return -1
 
     elif request_type == "wrong":
         """My assumption: 
             If the user's wrong requests count exceeds the limit (15)
                 then his access will be blocked for "all" of the APIs (sum, total and history).
         
-        Result: -1 means the user is blocked and 1 means the count is added to one and it's okay.
         """
         if result is None:
             r.set(user_ip, str((0, 1)), ex=expires_at)
             r.save()  # It's not good to use save in production...
-            return 1  # Saved successfully
 
         elif result[1] < conf.WRONG_REQUEST_LIMIT:  # Count is less than the limit
             r.set(user_ip, str((result[0], result[1] + 1)), ex=expires_at)
             r.save()
-            return 1  # Updated successfully
 
         elif result[1] >= conf.WRONG_REQUEST_LIMIT:
             # User exceeded the limit for Wrong requests
             r.set(user_ip, str((result[0], result[1] + 1)), ex=expires_at)
             r.save()
-            return -1

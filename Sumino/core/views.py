@@ -3,7 +3,7 @@
 Here are the functions and general logic of the project.
 
 """
-from datetime import datetime
+import datetime
 
 from django.db.models import Sum, F
 from rest_framework import status
@@ -18,6 +18,22 @@ from Sumino.redisDriver.utils import *
 from Sumino.core.permissions import UserIsBlockedPermission, UserIsSumBlockedPermission
 
 
+# Functions
+def get_duration():
+    # Calculate the expiration time in which the user can request for 100 times
+
+    now = datetime.datetime.now().replace()
+
+    hours_added = datetime.timedelta(hours=1)
+
+    next_hour = now + hours_added
+    next_hour = next_hour.replace(minute=0, second=0)
+
+    duration = (next_hour - now).total_seconds()
+
+    return int(duration)
+
+
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
 @permission_classes((UserIsBlockedPermission, UserIsSumBlockedPermission))
 def sum_view(request, **kwargs):
@@ -29,56 +45,31 @@ def sum_view(request, **kwargs):
     # Get User's IP
     user_ip = request.META.get('REMOTE_ADDR')
 
-    # Calculate the expiration time in which the user can request for 100 times
-    now = datetime.now()
-    next_hour = now.replace(hour=now.hour + 1,
-                            minute=0,
-                            second=0)
-    duration = (next_hour - now).total_seconds()
-
     if request.method == "GET":
         # Check if the input data is well-format
         if serializer.is_valid():
-            result = update_user_request_count(user_ip, expires_at=int(duration), request_type="sum")
-            if result == 1:  # User request limit updated successfully
-                # Insert a,b into number table
-                serializer.save()
-                response['result'] = serializer.validated_data['a'] + serializer.validated_data['b']
-                return Response(data=response, status=status.HTTP_200_OK)
+            update_user_request_count(user_ip, expires_at=get_duration(), request_type="sum")
 
-            elif result == -1:  # User exceeded its limit
-                response['response'] = "Too Many Requests in one hour! you've been blocked from " \
-                                       "calling sum API till the next hour"
-                return Response(data=response, status=status.HTTP_429_TOO_MANY_REQUESTS)
+            # Insert a,b into number table
+            serializer.save()
+            response['result'] = serializer.validated_data['a'] + serializer.validated_data['b']
+            return Response(data=response, status=status.HTTP_200_OK)
 
         else:  # The input data is not well-formed
-            # Plus bad request counts for this user(IP)
+
             response['response'] = {"please enter a well-format input based on this error ": serializer.errors}
 
-            result = update_user_request_count(user_ip, expires_at=int(duration), request_type="wrong")
-
-            if result == 1:  # User request limit updated successfully
-                return Response(data=response, status=status.HTTP_400_BAD_REQUEST)
-
-            elif result == -1:  # User wrong requests exceeded its limit (15)
-                response['response'] = "Too Many Wrong Requests in one hour! you've been blocked from " \
-                                       "calling the APIs till the next hour"
-                return Response(data=response, status=status.HTTP_429_TOO_MANY_REQUESTS)
+            # Plus bad request counts for this user(IP)
+            update_user_request_count(user_ip, expires_at=get_duration(), request_type="wrong")
 
             return Response(data=response, status=status.HTTP_400_BAD_REQUEST)
 
     else:  # Method not allowed
         error_msg = "Method " + request.method + " not allowed !!!"
 
-        result = update_user_request_count(user_ip, expires_at=int(duration), request_type="wrong")
+        update_user_request_count(user_ip, expires_at=get_duration(), request_type="wrong")
 
-        if result == 1:  # User request limit updated successfully
-            return Response(data={"response": error_msg}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-        elif result == -1:  # User wrong requests exceeded its limit (15)
-            response['response'] = error_msg + ", Too Many Wrong Requests in one hour! you've been blocked from " \
-                                               "calling the APIs till the next hour"
-            return Response(data=response, status=status.HTTP_429_TOO_MANY_REQUESTS)
+        return Response(data={"response": error_msg}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
@@ -97,29 +88,15 @@ def history_view(request, **kwargs):
         return Response(data={"Response": numbers_list}, status=status.HTTP_200_OK)
 
     else:  # Method not allowed
-        response = {}
 
         # Get User's IP
         user_ip = request.META.get('REMOTE_ADDR')
 
-        # Calculate the expiration time in which the user can request for 100 times
-        now = datetime.now()
-        next_hour = now.replace(hour=now.hour + 1,
-                                minute=0,
-                                second=0)
-        duration = (next_hour - now).total_seconds()
-
         error_msg = "Method " + request.method + " not allowed !!!"
 
-        result = update_user_request_count(user_ip, expires_at=int(duration), request_type="wrong")
+        update_user_request_count(user_ip, expires_at=get_duration(), request_type="wrong")
 
-        if result == 1:  # User request limit updated successfully
-            return Response(data={"response": error_msg}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-        elif result == -1:  # User wrong requests exceeded its limit (15)
-            response['response'] = error_msg + ", Too Many Wrong Requests in one hour! you've been blocked from " \
-                                               "calling the APIs till the next hour"
-            return Response(data=response, status=status.HTTP_429_TOO_MANY_REQUESTS)
+        return Response(data={"response": error_msg}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
@@ -132,26 +109,12 @@ def total_view(request, **kwargs):
         return Response(data={"Response": total}, status=status.HTTP_200_OK)
 
     else:  # Method not allowed
-        response = {}
 
         # Get User's IP
         user_ip = request.META.get('REMOTE_ADDR')
 
-        # Calculate the expiration time in which the user can request for 100 times
-        now = datetime.now()
-        next_hour = now.replace(hour=now.hour + 1,
-                                minute=0,
-                                second=0)
-        duration = (next_hour - now).total_seconds()
-
         error_msg = "Method " + request.method + " not allowed !!!"
 
-        result = update_user_request_count(user_ip, expires_at=int(duration), request_type="wrong")
+        update_user_request_count(user_ip, expires_at=get_duration(), request_type="wrong")
 
-        if result == 1:  # User request limit updated successfully
-            return Response(data={"response": error_msg}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-        elif result == -1:  # User wrong requests exceeded its limit (15)
-            response['response'] = error_msg + ", Too Many Wrong Requests in one hour! you've been blocked from " \
-                                               "calling the APIs till the next hour"
-            return Response(data=response, status=status.HTTP_429_TOO_MANY_REQUESTS)
+        return Response(data={"response": error_msg}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
