@@ -8,16 +8,23 @@ r = redis.Redis(host=conf.HOST,
                 decode_responses=True)
 
 
-def check_user_block_status(user_ip):
-    """Get the wrong request counts based on user_ip from Redis db
-        and if it's reached its limit(15) then return True, otherwise return False.
-       (This function will be called in the permissions.py module).
+def check_user_block_status(user_ip, request_type):
+    """Get the wrong or sum request counts based on user_ip from Redis db
+        and if it's reached its limit(15 or 100) then return True, otherwise return False.
+       (This function will be called in the classes in permissions.py module).
     """
-    result = eval(str(r.get(user_ip)))  # Convert redis result into tuple
-    if result is None or result[1] <= conf.WRONG_REQUEST_LIMIT:
-        return False
-    else:
-        return True
+    if request_type == "wrong":
+        result = eval(str(r.get(user_ip)))  # Convert redis result into tuple
+        if result is None or result[1] <= conf.WRONG_REQUEST_LIMIT:
+            return False
+        else:
+            return True
+    elif request_type == "sum":
+        result = eval(str(r.get(user_ip)))  # Convert redis result into tuple
+        if result is None or result[0] <= conf.SUM_REQUEST_LIMIT:
+            return False
+        else:
+            return True
 
 
 def update_user_request_count(user_ip, expires_at, request_type):
@@ -35,7 +42,7 @@ def update_user_request_count(user_ip, expires_at, request_type):
     if request_type == "sum":
         """My assumption: 
                     If the user's sum requests count exceeds the limit (100)
-                    then his access will be blocked just for the sum API (not the rest of them).
+                    then his access will be blocked "just" for the sum API (not the rest of them).
         
         Result: -1 means the user is blocked and 1 means the count is added to one and it's okay.
         """
@@ -58,7 +65,7 @@ def update_user_request_count(user_ip, expires_at, request_type):
     elif request_type == "wrong":
         """My assumption: 
             If the user's wrong requests count exceeds the limit (15)
-                then his access will be blocked for all of the APIs (sum, total and history).
+                then his access will be blocked for "all" of the APIs (sum, total and history).
         
         Result: -1 means the user is blocked and 1 means the count is added to one and it's okay.
         """
