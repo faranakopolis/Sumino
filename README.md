@@ -12,7 +12,7 @@
 
 ## APIs
 
-You can download and use the export file of TasKoala Postman's collection [here](https://github.com/maripillon/Sumino/tree/master/postman).
+You can download and use the export file of Postman's collection [here](https://github.com/maripillon/Sumino/tree/master/postman).
 
 The usage of each API is pretty straightforward. 
 
