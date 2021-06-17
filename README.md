@@ -59,7 +59,7 @@ Note 1: _In order to scale up the system in the future, we can change the implem
 
 ### Permissions
 
-At first, I was controlling the request counts inside of each view but in order to make the system's performance better, I decided to consider each blocking situation as a permission to access a view, so it does not have to go inside it.
+At first, I was controlling the request counts inside of each view but in order to make the system's performance better and make it scalable, I decided to consider each blocking situation as a permission to access a view, so it does not have to go inside it.
 
 
 Note 2: _For further explainations, please refer to the code._
