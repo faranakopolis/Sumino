@@ -47,6 +47,8 @@ _To download the SQL dump file you can click [here](https://github.com/maripillo
 
 ## System Design
 
+### Views
+
 Having in mind that the framework is Django Rest, I needed to choose between two different implementations for the views:
 - Class-based views
 - Function-based views
@@ -54,6 +56,11 @@ Having in mind that the framework is Django Rest, I needed to choose between two
 Although class-based views increase the code readability, we do not need to use all of the CRUD methods in this specific project. We also do not have many models to use and our APIs do not have anything in common. Therefore, it is better to use the function-based views for this implementation.
 
 Note 1: _In order to scale up the system in the future, we can change the implementation method to class-based._
+
+### Permissions
+
+At first, I was controlling the request counts inside of each view but in order to make the system's performance better, I decided to consider each blocking situation as a permission to access a view, so it does not have to go inside it.
+
 
 Note 2: _For further explainations, please refer to the code._
 
