@@ -34,6 +34,8 @@ def get_duration():
     return int(duration)
 
 
+# I had to specify methods list in here. So, I can track and identify them inside the view.
+# To make it simple, I just considered CRUD methods
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
 @permission_classes((UserIsBlockedPermission, UserIsSumBlockedPermission))
 def sum_view(request, **kwargs):
