@@ -14,13 +14,13 @@
 
 You can download and use the export file of Postman's collection [here](https://github.com/maripillon/Sumino/tree/master/postman).
 
-The usage of each API is pretty straightforward. 
+The functionality of each API is pretty straightforward. 
 
-## DataBase
+## Database
 
 Knowing that our language is Python and our framework is Django Rest, in my opinion, the first step of the system design is designing its database.
 
-This system uses two kind of databases (Postgres and Redis). Of course there are no strong relations between our data and it would come across the mind to just use **Redis** for this task but we need a reliable database like **Postgres** to store, calculate and retrieve many rows (using selects and aggrigation functions).
+I have used two databases (Postgres and Redis). Of course there are no strong relations between our data and it would come across the mind to just use **Redis** for this task but we need a reliable database like **Postgres** to store, calculate and retrieve many rows of numbers (using selects and aggrigation functions).
 
 We just have a table in our Postgres database to store the two numbers (a, b).
 
