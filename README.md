@@ -1,7 +1,5 @@
 # **Sumino** 
-### _(Boomino test task)_
-
-
+#### _(Boomino test task)_
 
 ![logo_gray](https://github.com/maripillon/Sumino/blob/master/logo/cover1.png?raw=true)
 
