@@ -20,6 +20,6 @@ The usage of each API is pretty straightforward.
 
 For more information on the database design and also downloading the SQL dump file you can click [here](https://github.com/maripillon/Sumino/tree/master/db%20dump). 
 
-##System Design
+## System Design
 
-For more information on designing the system (report) go [here](). 
+For more information on designing the system (report) continue reading...
