@@ -18,8 +18,35 @@ The usage of each API is pretty straightforward.
 
 ## DataBase
 
-For more information on the database design and also downloading the SQL dump file you can click [here](https://github.com/maripillon/Sumino/tree/master/db%20dump). 
+Knowing that our language is Python and our framework is Django Rest, in my opinion, the first step of the system design is designing its database.
+
+This system uses two kind of databases (Postgres and Redis). Of course there are no strong relations between our data and it would come across the mind to just use **Redis** for this task but we need a reliable database like **Postgres** to store, calculate and retrieve many rows (using selects and aggrigation functions).
+
+We just have a table in our Postgres database to store the two numbers (a, b).
+
+Although we have our reliable database, but we need a faster one just to store user's request counts just for a small amount of time (expiration time).
+Therefore we use Redis here to store requests counts in this format:
+- user-ip_sum : sum_request_count expiration_time
+- user-ip_wrong : wrong_request_count expiration_time
+_expiration time is the total seconds remining to the next hour_
+
+In order to improve our system's response time or its performance we could have store the total value in memory so we did'nt have to use the Postgres db each time the total API is being called, and there are two ways of implementing that:
++ Calculate the total value each time the Django server runs itself and store it in a global variable and also update it each time the sum API is being called.
+    _cons: if we scale up this system then we would have more than one Django server and based on which server accepts each API request, the total value could be unreliable.
++ Calculate and store the total value in the Redis database and update it each time the sum API is being called.
+
+Clearly, the second approach is better, but right now we are not dealing with a great amount of data and calculating the total value from the number table in the postgres is good enough for us.
+
+_To download the SQL dump file you can click [here](https://github.com/maripillon/Sumino/tree/master/db%20dump)_ 
+
 
 ## System Design
 
 For more information on designing the system (report) continue reading...
+
+
+
+
+
+
+
