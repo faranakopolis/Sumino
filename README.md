@@ -53,7 +53,10 @@ Having in mind that the framework is Django Rest, I needed to choose between two
 
 Although class-based views increase the code readability, we do not need to use all of the CRUD methods in this specific project. We also do not have many models to use and our APIs do not have anything in common. Therefore, it is better to use the function-based views for this implementation.
 
-note: _In order to scale up the system in the future, we can change the implementation method to class-based._
+Note 1: _In order to scale up the system in the future, we can change the implementation method to class-based._
+
+Note 2: _For further explainations, please refer to the code._
+
 
 
 
