@@ -20,19 +20,21 @@ The functionality of each API is pretty straightforward.
 
 Knowing that our language is Python and our framework is Django Rest, in my opinion, the first step of the system design is designing its database.
 
-I have used two databases (Postgres and Redis). Of course there are no strong relations between our data and it would come across the mind to just use **Redis** for this task but we need a reliable database like **Postgres** to store, calculate and retrieve many rows of numbers (using selects and aggrigation functions).
+This system uses two different databases (Postgres and Redis). Since there are no strong relations between our data and it would come to mind to just use **Redis** for this task. However, we need a reliable database like **Postgres** to store, calculate and retrieve many rows of numbers (using selects and aggrigation functions).
 
 We just have a table in our Postgres database to store the two numbers (a, b).
 
-Although we have our reliable database, but we need a faster one just to store user's request counts just for a small amount of time (expiration time).
-Therefore we use Redis here to store requests counts in this format:
+Although we have our reliable database, to store the number of users' requests, we need a faster database.
+These numbers have expiration dates and will not be stored for a long time.
+
+Therefore, we use Redis to store requests counts in this format:
 - user-ip_sum : sum_request_count expiration_time
 - user-ip_wrong : wrong_request_count expiration_time
 
-_expiration time is the total seconds remining to the next hour_
+_Expiration time is the total seconds remaining to the next hour._
 
-In order to improve our system's response time or its performance we could have store the total value in memory so we did'nt have to use the Postgres db each time the total API is being called, and there are two ways of implementing that:
-+ Calculate the total value each time the Django server runs itself and store it in a global variable and also update it each time the sum API is being called.
+In order to improve our system's response time (performance), we could store the total value in memory. So we do not have to use the Postgres db each time the /total/ API is being called, and there are two ways of implementing that:
++ Calculate the total value each time the Django server runs itself and store it in a global variable. The value will be updated each time the /sum/ API is being called.
     _cons: if we scale up this system then we would have more than one Django server and based on which server accepts each API request, the total value could be unreliable.
 + Calculate and store the total value in the Redis database and update it each time the sum API is being called.
 
