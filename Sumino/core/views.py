@@ -9,14 +9,13 @@ from django.db.models import Sum, F
 from rest_framework import status
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, OR
 from rest_framework.response import Response
 
 from Sumino.core.models import Number
 from Sumino.core.serializers import SumSerializer
 from Sumino.redisDriver.utils import *
 from Sumino.core.permissions import UserIsBlockedPermission, UserIsSumBlockedPermission
-from Sumino.settings import SUM_REQUEST_LIMIT, WRONG_REQUEST_LIMIT
 
 
 # Functions
@@ -77,7 +76,7 @@ def sum_view(request, **kwargs):
 
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
 @authentication_classes([BasicAuthentication])
-@permission_classes((IsAuthenticated, UserIsBlockedPermission))
+@permission_classes((UserIsBlockedPermission, IsAuthenticated))
 def history_view(request, **kwargs):
     if request.method != "GET":  # Method not allowed
 
@@ -104,7 +103,7 @@ def history_view(request, **kwargs):
 
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
 @authentication_classes([BasicAuthentication])
-@permission_classes((IsAuthenticated, UserIsBlockedPermission))
+@permission_classes((UserIsBlockedPermission, IsAuthenticated))
 def total_view(request, **kwargs):
     if request.method != "GET":  # Method not allowed
 
