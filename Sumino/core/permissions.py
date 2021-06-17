@@ -6,6 +6,7 @@
 from rest_framework import permissions, status
 from Sumino.redisDriver.utils import check_user_block_status
 from rest_framework import exceptions
+from Sumino.settings import SUM_REQUEST_LIMIT, WRONG_REQUEST_LIMIT
 
 
 class UserIsBlockedPermission(permissions.BasePermission):
@@ -16,15 +17,12 @@ class UserIsBlockedPermission(permissions.BasePermission):
                            "due to too Many Wrong Requests in one hour! "}
 
     def has_permission(self, request, view):
-        is_blocked = check_user_block_status(request.META['REMOTE_ADDR'], request_type="wrong")
+        key = f"{request.META['REMOTE_ADDR']}_wrong"
+        is_blocked = check_user_block_status(key, limit=WRONG_REQUEST_LIMIT)
 
-        # a blocked user (is_blocked=True) shouldn't have the permission => False
-        has_permission_to_request = not is_blocked
-
-        if has_permission_to_request is False:
+        if is_blocked is True:  # The blocked user shouldn't have the permission to request
             raise exceptions.Throttled(detail=self.message, code=status.HTTP_429_TOO_MANY_REQUESTS)
-        else:
-            return True
+        return True
 
 
 class UserIsSumBlockedPermission(permissions.BasePermission):
@@ -35,12 +33,9 @@ class UserIsSumBlockedPermission(permissions.BasePermission):
                            "due to too Many Requests in one hour! "}
 
     def has_permission(self, request, view):
-        is_blocked = check_user_block_status(request.META['REMOTE_ADDR'], request_type="sum")
+        key = f"{request.META['REMOTE_ADDR']}_sum"
+        is_blocked = check_user_block_status(key, limit=SUM_REQUEST_LIMIT)
 
-        # a blocked user (is_blocked=True) shouldn't have the permission => False
-        has_permission_to_request = not is_blocked
-
-        if has_permission_to_request is False:
+        if is_blocked is True:  # The blocked user shouldn't have the permission to request
             raise exceptions.Throttled(detail=self.message, code=status.HTTP_429_TOO_MANY_REQUESTS)
-        else:
-            return True
+        return True
