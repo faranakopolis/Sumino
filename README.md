@@ -47,13 +47,13 @@ _To download the SQL dump file you can click [here](https://github.com/maripillo
 
 ## System Design
 
-Having in mind that the framework is Django Rest, I needed to chosen between two different implementations for the Views:
+Having in mind that the framework is Django Rest, I needed to chosen between two different implementations for the views:
 - Class based views
 - Function based views
 
-Although class-based views increase the code readabality, we do not need to use all of the CRUD methods in this specific project. We don't really have that many models to use and our APIs doesn't relate to eachother, therefore it's better to use the function-based views for implementation.
+Although class-based views increase the code readabality, we do not need to use all of the CRUD methods in this specific project. We also do not have many models to use and our APIs do not have anything in common. Therefore, it is better to use the function-based views for this implementation.
 
-_In order to scale up in the future we could change the implementation method to class based._
+note: _In order to scale up the system in the future, we can change the implementation method to class-based._
 
 
 
