@@ -36,7 +36,7 @@ _Expiration time is the total seconds remaining to the next hour._
 In order to improve our system's response time (performance), we could store the total value in memory. So we do not have to use the Postgres db each time the /total/ API is being called, and there are two ways of implementing that:
 + Calculate the total value each time the Django server runs itself and store it in a global variable. The value will be updated each time the /sum/ API is called.
     
-    _cons: if we scale up this system then we would have more than one Django server and based on which server accepts each API request, the total value could be unreliable_
+        _drawback: if we scale up this system then we would have more than one Django server and based on which server accepts each API request, the total value could be unreliable_
     
 + Calculate and store the total value in the Redis database and update it each time the sum API is being called.
 
