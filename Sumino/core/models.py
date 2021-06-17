@@ -1,5 +1,4 @@
-""" This module includes the Sumino's models
-     based on the database design.
+""" This module includes the Sumino's models based on their tables in database.
 
 """
 

@@ -1,5 +1,5 @@
 """Sumino
-Is a simple summing system including following APIs:
+Is a simple system for adding two numbers including following APIs:
     - Get sum of two numbers (a,b)
     - Get all of numbers (a,b)
     - Get the sum of total numbers

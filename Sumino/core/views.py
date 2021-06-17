@@ -20,7 +20,7 @@ from Sumino.core.permissions import UserIsBlockedPermission, UserIsSumBlockedPer
 
 # Functions
 def get_duration():
-    # Calculate the expiration time in which the user can request for 100 times
+    # Calculate the expiration time in which the user can request in a specific range
 
     now = datetime.datetime.now().replace()
 
@@ -39,10 +39,10 @@ def get_duration():
 def sum_view(request, **kwargs):
     response = {}
 
-    # Pass the inputs to the SumSerializer in order to their format checking
+    # Pass the inputs to the SumSerializer in order to check their formats
     serializer = SumSerializer(data=request.query_params)
 
-    # Get User's IP
+    # Get the user ip
     user_ip = request.META.get('REMOTE_ADDR')
 
     if request.method != "GET":  # Method not allowed
@@ -52,23 +52,23 @@ def sum_view(request, **kwargs):
 
         return Response(data={"response": error_msg}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    # Check if the input data is well-format
+    # Check if the input data is well-formed
     if not serializer.is_valid():  # The input data is not well-formed
 
         response['response'] = {"please enter a well-format input based on this error ": serializer.errors}
 
-        # Update bad request counts for this user(IP)
+        # Update bad request counts for key = user ip
         key = f"{user_ip}_wrong"
         update_user_request_count(key, expires_at=get_duration())
 
         return Response(data=response, status=status.HTTP_400_BAD_REQUEST)
 
     # The request is correct
-    # Update sum request counts for this user(IP)
+    # Update sum request counts for key = user ip
     key = f"{user_ip}_sum"
     update_user_request_count(key, expires_at=get_duration())
 
-    # Insert a,b into number table
+    # Insert a,b into the number table
     serializer.save()
     response['result'] = serializer.validated_data['a'] + serializer.validated_data['b']
     return Response(data=response, status=status.HTTP_200_OK)
@@ -80,7 +80,7 @@ def sum_view(request, **kwargs):
 def history_view(request, **kwargs):
     if request.method != "GET":  # Method not allowed
 
-        # Get User's IP
+        # Get user ip
         user_ip = request.META.get('REMOTE_ADDR')
 
         error_msg = f"Method {request.method} not allowed !!!"
@@ -107,7 +107,7 @@ def history_view(request, **kwargs):
 def total_view(request, **kwargs):
     if request.method != "GET":  # Method not allowed
 
-        # Get User's IP
+        # Get user ip
         user_ip = request.META.get('REMOTE_ADDR')
 
         error_msg = f"Method {request.method} not allowed !!!"
